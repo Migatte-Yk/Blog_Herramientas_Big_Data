@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>El ecosistema detrás de los datos | Herramientas Big Data</title>
+  <meta name="description" content="Blog académico sobre herramientas Big Data Open Source y comerciales: Kafka, Spark, Airflow, Databricks, Snowflake y BigQuery, su rol en arquitecturas de datos, ETL/ELT y los criterios para elegir entre ellas.">
+  <meta name="author" content="Nikolas Esteban Krejci Bautista">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="El ecosistema detrás de los datos | Herramientas Big Data">
+  <meta property="og:description" content="Un análisis académico y comparativo de herramientas Big Data Open Source y comerciales, desde la ingesta hasta la visualización, con una postura crítica sobre cómo elegir entre ellas.">
+  <meta property="og:locale" content="es_ES">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- ===== Sprite de iconos SVG (propios, sin dependencias externas) ===== -->
+  <svg class="icon-sprite" aria-hidden="true" style="display:none">
+    <symbol id="icon-menu" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></symbol>
+    <symbol id="icon-close" viewBox="0 0 24 24"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></symbol>
+    <symbol id="icon-arrow-up" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></symbol>
+    <symbol id="icon-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
+    <symbol id="icon-arrow-right" viewBox="0 0 24 24"><line x1="4" y1="12" x2="20" y2="12"/><polyline points="13 5 20 12 13 19"/></symbol>
+    <symbol id="icon-database" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3.2"/><path d="M4 6v6c0 1.77 3.58 3.2 8 3.2s8-1.43 8-3.2V6"/><path d="M4 12v6c0 1.77 3.58 3.2 8 3.2s8-1.43 8-3.2v-6"/></symbol>
+    <symbol id="icon-zap" viewBox="0 0 24 24"><polygon points="12 2 4 14 11 14 9 22 20 9 13 9 12 2"/></symbol>
+    <symbol id="icon-layers" viewBox="0 0 24 24"><polygon points="12 3 21 8 12 13 3 8 12 3"/><polyline points="3 13 12 18 21 13"/><polyline points="3 17.5 12 22.5 21 17.5"/></symbol>
+    <symbol id="icon-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 5-3 8-7 9-4-1-7-4-7-9V6l7-3z"/><polyline points="9 12 11.5 14.5 15.5 9.5"/></symbol>
+    <symbol id="icon-gem" viewBox="0 0 24 24"><polygon points="4 8 12 3 20 8 12 21 4 8"/><line x1="4" y1="8" x2="20" y2="8"/><line x1="9" y1="3" x2="12" y2="8"/><line x1="15" y1="3" x2="12" y2="8"/></symbol>
+    <symbol id="icon-route" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.3"/><circle cx="18" cy="18" r="2.3"/><path d="M8.2 6.8C13 8 12 15 17 17"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="20" y1="20" x2="15.3" y2="15.3"/></symbol>
+    <symbol id="icon-repeat" viewBox="0 0 24 24"><path d="M4 12V8a3 3 0 0 1 3-3h12"/><polyline points="15 2 19 5 15 8"/><path d="M20 12v4a3 3 0 0 1-3 3H5"/><polyline points="9 22 5 19 9 16"/></symbol>
+    <symbol id="icon-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3 20c.8-3.4 3-5.2 6-5.2s5.2 1.8 6 5.2"/><path d="M15.5 15c2.3.3 3.7 1.9 4.3 4.3"/></symbol>
+    <symbol id="icon-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3c2.6 2.5 4 5.7 4 9s-1.4 6.5-4 9c-2.6-2.5-4-5.7-4-9s1.4-6.5 4-9z"/></symbol>
+    <symbol id="icon-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14.5"/></symbol>
+    <symbol id="icon-server" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="6" rx="1.2"/><rect x="3.5" y="14" width="17" height="6" rx="1.2"/><line x1="7" y1="7" x2="7" y2="7"/><line x1="7" y1="17" x2="7" y2="17"/></symbol>
+    <symbol id="icon-cpu" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1.4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></symbol>
+    <symbol id="icon-bars" viewBox="0 0 24 24"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="19" y1="20" x2="19" y2="15"/></symbol>
+    <symbol id="icon-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+    <symbol id="icon-lock" viewBox="0 0 24 24"><rect x="5.5" y="10.5" width="13" height="9.5" rx="1.4"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="icon-scale" viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"/><line x1="5" y1="7" x2="19" y2="7"/><path d="M5 7L2.5 13.5a2.7 2.7 0 0 0 5 0L5 7z"/><path d="M19 7l-2.5 6.5a2.7 2.7 0 0 0 5 0L19 7z"/></symbol>
+    <symbol id="icon-alert" viewBox="0 0 24 24"><path d="M12 3l10 18H2L12 3z"/><line x1="12" y1="10" x2="12" y2="15"/><line x1="12" y1="17.5" x2="12" y2="17.5"/></symbol>
+    <symbol id="icon-book" viewBox="0 0 24 24"><path d="M4 5.5C4 4.7 4.7 4 5.5 4H12v16H5.5A1.5 1.5 0 0 1 4 18.5v-13z"/><path d="M20 5.5c0-.8-.7-1.5-1.5-1.5H12v16h6.5A1.5 1.5 0 0 0 20 18.5v-13z"/></symbol>
+    <symbol id="icon-trend" viewBox="0 0 24 24"><polyline points="3 17 9.5 10.5 14 15 21 7"/><polyline points="15 7 21 7 21 13"/></symbol>
+    <symbol id="icon-check" viewBox="0 0 24 24"><polyline points="5 13 10 18 19 6"/></symbol>
+    <symbol id="icon-cloud" viewBox="0 0 24 24"><path d="M7 18h10a4 4 0 0 0 .5-7.97A5.5 5.5 0 0 0 7.1 8.51 4.5 4.5 0 0 0 7 18z"/></symbol>
+  </svg>
+
+  <!-- ===== Barra de progreso de lectura ===== -->
+  <div class="progress-bar" id="progress-bar" aria-hidden="true"></div>
+
+  <!-- ===== Navegación ===== -->
+  <header class="site-header">
+    <nav class="nav" aria-label="Navegación principal">
+      <a href="#top" class="nav__brand">
+        <span class="nav__mark" aria-hidden="true"></span>
+        <span>Big&nbsp;Data <em>&amp;</em> Herramientas</span>
+        <img class="nav__logo" src="assets/logosInstitucionales/ESCUDO COLOR.png" alt="" width="24" height="24">
+      </a>
+
+      <button class="nav__toggle" id="nav-toggle" aria-expanded="false" aria-controls="nav-menu" aria-label="Abrir menú de navegación">
+        <svg class="icon nav__toggle-icon nav__toggle-icon--open" width="22" height="22"><use href="#icon-menu"/></svg>
+        <svg class="icon nav__toggle-icon nav__toggle-icon--close" width="22" height="22"><use href="#icon-close"/></svg>
+      </button>
+
+      <div class="nav__menu" id="nav-menu">
+        <a href="#que-es" data-nav>Qué es</a>
+        <a href="#ecosistema" data-nav>Ecosistema</a>
+        <a href="#open-source" data-nav>Open Source</a>
+        <a href="#herramientas-oss" data-nav>Herr. OSS</a>
+        <a href="#comercial" data-nav>Comercial</a>
+        <a href="#herramientas-comerciales" data-nav>Herr. comerciales</a>
+        <a href="#oss-vs-comercial" data-nav>OSS vs. Comercial</a>
+        <a href="#etl-elt" data-nav>ETL/ELT</a>
+        <a href="#caso-arquitectura" data-nav>Arquitectura</a>
+        <a href="#como-elegir" data-nav>Cómo elegir</a>
+        <a href="#reflexion-critica" data-nav>Reflexión</a>
+        <a href="#conclusiones" data-nav>Conclusiones</a>
+        <a href="#referencias" data-nav>Referencias</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="top">
+
+    <!-- ===== HERO ===== -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero__inner">
+        <p class="hero__eyebrow">Big Data <span aria-hidden="true">·</span> Herramientas Open Source y comerciales</p>
+        <h1 class="hero__title" id="hero-title">El ecosistema detrás de los datos</h1>
+        <p class="hero__subtitle">Herramientas Big Data: Open Source vs. soluciones comerciales.</p>
+        <p>En Big Data, almacenar y procesar grandes volúmenes de información requiere mucho más que infraestructura: requiere elegir correctamente las herramientas que conectan cada etapa del ecosistema.</p>
+
+        <div class="hero__credentials">
+          <img class="hero__seal" src="assets/logosInstitucionales/ESCUDO COLOR.png" alt="Escudo de la Universidad de Cundinamarca" width="40" height="40">
+          <div class="hero__meta">
+            <span>Blog académico · 2026</span>
+            <span aria-hidden="true">—</span>
+            <span>Autor: Nikolas Esteban Krejci Bautista</span>
+            <span aria-hidden="true">—</span>
+            <span>Programa: Especialización en Analítica y Ciencia de Datos</span>
+            <span aria-hidden="true">—</span>
+            <span>CADI: Big Data - CAD2092023101</span>
+            <span aria-hidden="true">—</span>
+            <span>Actividad: R1-A3-S4</span>
+            <span aria-hidden="true">—</span>
+            <span>Institución: Universidad de Cundinamarca</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="content-shell">
+      <!-- ===== Índice de contenidos ===== -->
+      <aside class="toc" aria-label="Índice de contenidos">
+        <p class="toc__label">Índice</p>
+        <ol class="toc__list">
+          <li><a href="#que-es" data-nav>¿Qué es una herramienta Big Data?</a></li>
+          <li><a href="#ecosistema" data-nav>El ecosistema Big Data</a></li>
+          <li><a href="#open-source" data-nav>Open Source</a></li>
+          <li><a href="#herramientas-oss" data-nav>Herramientas Open Source</a></li>
+          <li><a href="#comercial" data-nav>Soluciones comerciales</a></li>
+          <li><a href="#herramientas-comerciales" data-nav>Herramientas comerciales</a></li>
+          <li><a href="#oss-vs-comercial" data-nav>Open Source vs. Comercial</a></li>
+          <li><a href="#etl-elt" data-nav>ETL y pipelines de datos</a></li>
+          <li><a href="#caso-arquitectura" data-nav>Caso de arquitectura</a></li>
+          <li><a href="#como-elegir" data-nav>¿Cómo elegir?</a></li>
+          <li><a href="#reflexion-critica" data-nav>Reflexión crítica</a></li>
+          <li><a href="#conclusiones" data-nav>Conclusiones</a></li>
+          <li><a href="#referencias" data-nav>Referencias</a></li>
+        </ol>
+      </aside>
+
+      <div class="article">
+
+        <!-- ===== 01. QUÉ ES UNA HERRAMIENTA BIG DATA ===== -->
+        <section class="block" id="que-es" aria-labelledby="que-es-title">
+          <p class="block__eyebrow">01 · Fundamentos</p>
+          <h2 class="block__title" id="que-es-title">¿Qué es realmente una herramienta Big Data?</h2>
+
+          <p>El Instituto Nacional de Estándares y Tecnología de Estados Unidos (NIST) caracteriza el Big Data a partir de conjuntos de datos cuyo volumen, velocidad o variedad superan la capacidad de las herramientas tradicionales de almacenamiento y análisis (Chang &amp; Grady, 2018). Esa definición, sin embargo, dice poco sobre qué es exactamente una "herramienta Big Data": el término no designa un único tipo de software, sino un conjunto heterogéneo de tecnologías que resuelven problemas distintos dentro de un mismo ecosistema.</p>
+
+          <p>Hablar de "herramienta Big Data" sin precisar de qué categoría se trata suele producir comparaciones confusas, porque se termina comparando productos que no compiten entre sí: un motor de procesamiento distribuido no cumple la misma función que un orquestador de flujos de trabajo, ni un almacén de datos en la nube reemplaza a una plataforma de streaming. Antes de comparar herramientas concretas, conviene distinguir las categorías funcionales que componen el ecosistema.</p>
+
+          <blockquote class="thesis reveal">
+            <p>La elección de una herramienta Big Data no debería depender únicamente de si es gratuita o comercial, sino de su capacidad de integrarse con la arquitectura existente, responder a los requerimientos técnicos, escalar, garantizar confiabilidad y generar valor frente al costo total de operación. Por eso, la pregunta que guía este artículo no es cuál herramienta es mejor, sino qué factores deberían determinar la elección entre una solución Open Source y una comercial dentro de una arquitectura de datos concreta.</p>
+          </blockquote>
+
+          <p>Para ordenar esa diversidad, es útil pensar en al menos nueve categorías funcionales que, juntas, componen el ecosistema Big Data. Ninguna herramienta cubre todas ellas por sí sola: la mayoría de las arquitecturas reales combinan varias piezas especializadas, incluso cuando una misma plataforma comercial ofrece varias de estas funciones de forma integrada. Selecciona cada tarjeta para ver un ejemplo de su función.</p>
+
+          <ul class="category-grid">
+            <li><button class="tool-category__card reveal" type="button" aria-expanded="false">
+              <svg class="icon tool-category__icon" width="26" height="26"><use href="#icon-database"/></svg>
+              <span class="tool-category__index">01</span>
+              <h3>Almacenamiento</h3>
+              <p class="tool-category__def">Conservar grandes volúmenes de datos estructurados, semiestructurados o no estructurados de forma duradera y accesible.</p>
+              <p class="tool-category__link">Ejemplo: un sistema de archivos distribuido como HDFS, o un almacén de objetos en la nube que alimenta un data lake.</p>
+              <svg class="icon tool-category__chevron" width="18" height="18"><use href="#icon-chevron"/></svg>
+            </button></li>
+
+            <li><button class="tool-category__card reveal" type="button" aria-expanded="false">
+              <svg class="icon tool-category__icon" width="26" height="26"><use href="#icon-cpu"/></svg>
+              <span class="tool-category__index">02</span>
+              <h3>Procesamiento distribuido</h3>
+              <p class="tool-category__def">Ejecutar cálculos sobre grandes volúmenes de datos repartiendo el trabajo entre múltiples nodos de cómputo.</p>
+              <p class="tool-category__link">Ejemplo: un motor como Apache Spark que transforma y agrega datos en paralelo sobre un clúster.</p>
+              <svg class="icon tool-category__chevron" width="18" height="18"><use href="#icon-chevron"/></svg>
+            </button></li>
+
+            <li><button class="tool-category__card reveal" type="button" aria-expanded="false">
+              <svg class="icon tool-category__icon" width="26" height="26"><use href="#icon-route"/></svg>
+              <span class="tool-category__index">03</span>
+              <h3>Integración de datos</h3>
+              <p class="tool-category__def">Conectar sistemas de origen heterogéneos (bases de datos, APIs, sensores, aplicaciones) con el resto del ecosistema.</p>
+              <p class="tool-category__link">Ejemplo: una herramienta de flujo visual como Apache NiFi que mueve datos entre sistemas sin escribir código a la medida.</p>
+              <svg class="icon tool-category__chevron" width="18" height="18"><use href="#icon-chevron"/></svg>
+            </button></li>
+
+            <li><button class="tool-category__card reveal" type="button" aria-expanded="false">
+              <svg class="icon tool-category__icon" width="26" height="26"><use href="#icon-layers"/></svg>
+              <span class="tool-category__index">04</span>
+              <h3>ETL / ELT</h3>
+              <p class="tool-category__def">Extraer datos de un origen, transformarlos según reglas de negocio y cargarlos en un destino analítico.</p>
+              <p class="tool-category__link">Ejemplo: un job de AWS Glue o un pipeline de Spark que limpia y normaliza datos antes de cargarlos en un warehouse.</p>
+              <svg class="icon tool-category__chevron" width="18" height="18"><use href="#icon-chevron"/></svg>
+            </button></li>
+
+            <li><button class="tool-category__card reveal" type="button" aria-expanded="false">
+              <svg class="icon tool-category__icon" width="26" height="26"><use href="#icon-zap"/></svg>
+              <span class="tool-category__index">05</span>
+              <h3>Streaming</h3>
+              <p class="tool-category__def">Capturar y procesar eventos de forma continua, casi en tiempo real, en lugar de esperar a procesarlos por lotes.</p>
+              <p class="tool-category__link">Ejemplo: Apache Kafka como columna vertebral de eventos entre sistemas productores y consumidores.</p>
+              <svg class="icon tool-category__chevron" width="18" height="18"><use href="#icon-chevron"/></svg>
+            </button></li>
+
+            <li><button class="tool-category__card reveal" type="button" aria-expanded="false">
+              <svg class="icon tool-category__icon" width="26" height="26"><use href="#icon-repeat"/></svg>
+              <span class="tool-category__index">06</span>
+              <h3>Orquestación</h3>
+              <p class="tool-category__def">Programar, coordinar y monitorear la ejecución de tareas y sus dependencias dentro de un flujo de trabajo.</p>
+              <p class="tool-category__link">Ejemplo: Apache Airflow define en qué orden y bajo qué condiciones se ejecutan los pasos de un pipeline.</p>
+              <svg class="icon tool-category__chevron" width="18" height="18"><use href="#icon-chevron"/></svg>
+            </button></li>
+
+            <li><button class="tool-category__card reveal" type="button" aria-expanded="false">
+              <svg class="icon tool-category__icon" width="26" height="26"><use href="#icon-search"/></svg>
+              <span class="tool-category__index">07</span>
+              <h3>Consultas</h3>
+              <p class="tool-category__def">Permitir a personas o aplicaciones interrogar los datos almacenados mediante lenguajes como SQL.</p>
+              <p class="tool-category__link">Ejemplo: motores de consulta distribuida como Trino o Presto sobre un data lake.</p>
+              <svg class="icon tool-category__chevron" width="18" height="18"><use href="#icon-chevron"/></svg>
+            </button></li>
+
+            <li><button class="tool-category__card reveal" type="button" aria-expanded="false">
+              <svg class="icon tool-category__icon" width="26" height="26"><use href="#icon-bars"/></svg>
+              <span class="tool-category__index">08</span>
+              <h3>Analítica</h3>
+              <p class="tool-category__def">Aplicar modelos estadísticos, de negocio o de aprendizaje automático sobre los datos ya procesados.</p>
+              <p class="tool-category__link">Ejemplo: notebooks colaborativos y bibliotecas de machine learning ejecutadas sobre un motor como Spark.</p>
+              <svg class="icon tool-category__chevron" width="18" height="18"><use href="#icon-chevron"/></svg>
+            </button></li>
+
+            <li><button class="tool-category__card reveal" type="button" aria-expanded="false">
+              <svg class="icon tool-category__icon" width="26" height="26"><use href="#icon-trend"/></svg>
+              <span class="tool-category__index">09</span>
+              <h3>Visualización</h3>
+              <p class="tool-category__def">Traducir los resultados del análisis en tableros y reportes comprensibles para la toma de decisiones.</p>
+              <p class="tool-category__link">Ejemplo: herramientas de BI conectadas directamente a un data warehouse o lakehouse.</p>
+              <svg class="icon tool-category__chevron" width="18" height="18"><use href="#icon-chevron"/></svg>
+            </button></li>
+          </ul>
+
+          <p>No existe una única herramienta que cubra necesariamente todo el ecosistema. Incluso las plataformas comerciales que integran varias de estas funciones lo hacen combinando, internamente, componentes especializados para cada capa.</p>
+        </section>
+
+        <!-- ===== 02. EL ECOSISTEMA BIG DATA ===== -->
+        <section class="block" id="ecosistema" aria-labelledby="ecosistema-title">
+          <p class="block__eyebrow">02 · Arquitectura</p>
+          <h2 class="block__title" id="ecosistema-title">El ecosistema Big Data</h2>
+
+          <p>Si las nueve categorías anteriores describen funciones aisladas, el ecosistema Big Data es la manera en que esas funciones se encadenan para convertir datos crudos en decisiones. Ese recorrido puede describirse como una secuencia de etapas, cada una dependiente de la anterior.</p>
+
+          <figure class="diagram diagram--flow reveal">
+            <p id="fig-ecosistema-title" class="sr-only">Ecosistema Big Data: fuentes de datos, ingesta, ETL o ELT, almacenamiento, procesamiento, análisis, visualización y decisiones, en ese orden.</p>
+            <div class="flow" role="img" aria-labelledby="fig-ecosistema-title">
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-globe"/></svg><span>Fuentes de datos</span></div>
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-zap"/></svg><span>Ingesta</span></div>
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-route"/></svg><span>ETL / ELT</span></div>
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-database"/></svg><span>Almacenamiento</span></div>
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-cpu"/></svg><span>Procesamiento</span></div>
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-bars"/></svg><span>Análisis</span></div>
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-trend"/></svg><span>Visualización</span></div>
+              <div class="flow__step flow__step--final"><svg class="icon" width="22" height="22"><use href="#icon-target"/></svg><span>Decisiones</span></div>
+            </div>
+            <figcaption>Figura 1. Etapas conceptuales del ecosistema Big Data, desde el origen del dato hasta la decisión que habilita.</figcaption>
+          </figure>
+
+          <p>Cada etapa puede resolverse con distintas herramientas, y una misma herramienta puede participar en más de una etapa. La siguiente lista muestra ejemplos habituales, tal como los documentan sus propios proyectos o proveedores:</p>
+
+          <div class="benefit-list">
+            <div class="benefit-list__item reveal">
+              <svg class="icon" width="22" height="22"><use href="#icon-zap"/></svg>
+              <div><h3>Apache Kafka</h3><p>Ingesta y streaming de eventos en tiempo real entre sistemas productores y consumidores (Apache Software Foundation, s. f.-c).</p></div>
+            </div>
+            <div class="benefit-list__item reveal">
+              <svg class="icon" width="22" height="22"><use href="#icon-route"/></svg>
+              <div><h3>Apache NiFi</h3><p>Integración y enrutamiento visual de flujos de datos entre sistemas heterogéneos (Apache Software Foundation, s. f.-d).</p></div>
+            </div>
+            <div class="benefit-list__item reveal">
+              <svg class="icon" width="22" height="22"><use href="#icon-server"/></svg>
+              <div><h3>Apache Hadoop (HDFS)</h3><p>Almacenamiento distribuido y tolerante a fallos sobre hardware convencional (Apache Software Foundation, s. f.-b).</p></div>
+            </div>
+            <div class="benefit-list__item reveal">
+              <svg class="icon" width="22" height="22"><use href="#icon-cpu"/></svg>
+              <div><h3>Apache Spark</h3><p>Procesamiento distribuido para cargas de ingeniería de datos, SQL y aprendizaje automático (Apache Software Foundation, s. f.-e).</p></div>
+            </div>
+            <div class="benefit-list__item reveal">
+              <svg class="icon" width="22" height="22"><use href="#icon-repeat"/></svg>
+              <div><h3>Apache Airflow</h3><p>Orquestación de los pasos y dependencias de un pipeline de datos (Apache Software Foundation, s. f.-a).</p></div>
+            </div>
+            <div class="benefit-list__item reveal">
+              <svg class="icon" width="22" height="22"><use href="#icon-layers"/></svg>
+              <div><h3>Databricks</h3><p>Procesamiento, ingeniería de datos y analítica sobre una arquitectura de lakehouse gestionada (Databricks, s. f.).</p></div>
+            </div>
+            <div class="benefit-list__item reveal">
+              <svg class="icon" width="22" height="22"><use href="#icon-database"/></svg>
+              <div><h3>Snowflake</h3><p>Almacenamiento y analítica SQL en un data warehouse gestionado en la nube (Snowflake Inc., s. f.).</p></div>
+            </div>
+            <div class="benefit-list__item reveal">
+              <svg class="icon" width="22" height="22"><use href="#icon-cloud"/></svg>
+              <div><h3>Google BigQuery</h3><p>Almacenamiento y analítica serverless a escala de petabytes (Google Cloud, s. f.).</p></div>
+            </div>
+          </div>
+
+          <p>Las fronteras entre estas categorías no son rígidas: Databricks, por ejemplo, participa a la vez en procesamiento, integración y analítica, y Spark puede usarse tanto para transformación ETL como para análisis final. Esta superposición es, precisamente, uno de los factores que complica cualquier comparación simplista entre herramientas.</p>
+        </section>
+
+        <!-- ===== 03. OPEN SOURCE ===== -->
+        <section class="block" id="open-source" aria-labelledby="open-source-title">
+          <p class="block__eyebrow">03 · Modelo Open Source</p>
+          <h2 class="block__title" id="open-source-title">Open Source: qué implica realmente</h2>
+
+          <p>Una herramienta Open Source es aquella cuyo código fuente está disponible públicamente bajo una licencia que permite su uso, estudio, modificación y redistribución. En el ecosistema Big Data, proyectos como Apache Spark, Kafka, Airflow, Hadoop o NiFi se desarrollan bajo la Apache Software Foundation, con procesos de contribución abiertos a la comunidad.</p>
+
+          <p>Tres características distinguen a estas herramientas: disponibilidad del código, una comunidad de contribuyentes que impulsa su evolución, y una alta extensibilidad, ya que cualquier organización puede adaptar el software a necesidades específicas sin depender de un proveedor único. Además, pueden desplegarse tanto en infraestructura propia (on-premise) como en la nube, lo que traslada la responsabilidad operativa —dimensionar clústeres, aplicar parches de seguridad, planificar capacidad— a quien las opera.</p>
+
+          <div class="data-types">
+            <article class="data-types__card reveal">
+              <h3><svg class="icon" width="20" height="20"><use href="#icon-book"/></svg> Código abierto</h3>
+              <p>El código fuente puede leerse, auditarse y modificarse libremente.</p>
+              <ul class="tag-list">
+                <li><svg class="icon" width="16" height="16"><use href="#icon-search"/></svg> Repositorio público auditable</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-shield"/></svg> Sin dependencia de una única empresa</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-layers"/></svg> Licencias tipo Apache 2.0</li>
+              </ul>
+            </article>
+            <article class="data-types__card reveal">
+              <h3><svg class="icon" width="20" height="20"><use href="#icon-users"/></svg> Comunidad</h3>
+              <p>La evolución del proyecto depende de contribuyentes individuales y organizacionales.</p>
+              <ul class="tag-list">
+                <li><svg class="icon" width="16" height="16"><use href="#icon-repeat"/></svg> Ciclos de mejora continuos</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-globe"/></svg> Ecosistemas de plugins y conectores</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-book"/></svg> Documentación y foros abiertos</li>
+              </ul>
+            </article>
+            <article class="data-types__card reveal">
+              <h3><svg class="icon" width="20" height="20"><use href="#icon-cpu"/></svg> Responsabilidad operativa</h3>
+              <p>Desplegar y mantener la herramienta corre por cuenta de quien la adopta.</p>
+              <ul class="tag-list">
+                <li><svg class="icon" width="16" height="16"><use href="#icon-server"/></svg> Dimensionamiento de infraestructura</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-shield"/></svg> Parches y seguridad propios</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-users"/></svg> Personal especializado requerido</li>
+              </ul>
+            </article>
+          </div>
+
+          <p>Es importante no confundir "Open Source" con "gratuito". El costo de licencia puede ser nulo, pero eso no significa que el costo total de operar la herramienta lo sea.</p>
+
+          <blockquote class="thesis reveal">
+            <p>Costo de licencia ≠ costo total de propiedad. Operar una herramienta Open Source implica infraestructura, administración, mantenimiento, actualización, seguridad y personal especializado: costos reales que no aparecen en el precio de la licencia, pero que determinan si la adopción resulta, en la práctica, económica o no.</p>
+          </blockquote>
+        </section>
+
+        <!-- ===== 04. HERRAMIENTAS OPEN SOURCE ===== -->
+        <section class="block" id="herramientas-oss" aria-labelledby="herramientas-oss-title">
+          <p class="block__eyebrow">04 · Análisis de herramientas</p>
+          <h2 class="block__title" id="herramientas-oss-title">Tres herramientas Open Source</h2>
+
+          <p>Se seleccionaron Kafka, Spark y Airflow porque, juntas, cubren tres capas distintas y complementarias del ecosistema —ingesta, procesamiento y orquestación— y porque su combinación es habitual en arquitecturas reales, lo que permite ilustrar cómo interactúan entre sí y no solo compararlas de forma aislada.</p>
+
+          <div class="tool-grid">
+            <article class="tool-card reveal">
+              <div class="tool-card__head">
+                <h3>Apache Kafka</h3>
+                <span class="badge badge--oss">Open Source</span>
+              </div>
+              <p class="tool-card__meta">Categoría: streaming / ingesta de eventos</p>
+              <p>Kafka es una plataforma distribuida de streaming de eventos que permite leer, escribir, almacenar y procesar flujos de datos entre muchos sistemas a la vez (Apache Software Foundation, s. f.-c). Resuelve el problema de conectar múltiples productores y consumidores de datos en tiempo real sin acoplarlos directamente entre sí.</p>
+              <p class="tool-card__label">Ventajas</p>
+              <ul class="tool-card__pros">
+                <li><svg class="icon" width="16" height="16"><use href="#icon-check"/></svg> Alto rendimiento y baja latencia en flujos continuos</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-check"/></svg> Desacopla sistemas productores y consumidores</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-check"/></svg> Ecosistema propio de conectores (Kafka Connect) y procesamiento (Kafka Streams)</li>
+              </ul>
+              <p class="tool-card__label">Limitaciones</p>
+              <ul class="tool-card__cons">
+                <li><svg class="icon" width="16" height="16"><use href="#icon-alert"/></svg> Administrar y dimensionar un clúster requiere experiencia operativa</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-alert"/></svg> No es, por sí solo, un motor de almacenamiento analítico ni de consulta</li>
+              </ul>
+              <p class="tool-card__use">Especialmente útil cuando múltiples sistemas necesitan reaccionar a eventos casi en tiempo real, más allá de un único par origen-destino.</p>
+            </article>
+
+            <article class="tool-card reveal">
+              <div class="tool-card__head">
+                <h3>Apache Spark</h3>
+                <span class="badge badge--oss">Open Source</span>
+              </div>
+              <p class="tool-card__meta">Categoría: procesamiento distribuido</p>
+              <p>Spark es un motor unificado para ejecutar ingeniería de datos, ciencia de datos y aprendizaje automático, tanto en un solo nodo como en clústeres (Apache Software Foundation, s. f.-e). Resuelve el problema de transformar y analizar volúmenes de datos que superan la capacidad de una sola máquina.</p>
+              <p class="tool-card__label">Ventajas</p>
+              <ul class="tool-card__pros">
+                <li><svg class="icon" width="16" height="16"><use href="#icon-check"/></svg> Procesamiento distribuido en memoria, más veloz que enfoques puramente basados en disco</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-check"/></svg> Un mismo motor cubre batch, streaming estructurado, SQL y machine learning</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-check"/></svg> APIs en Python, Scala, Java y R; se ejecuta sobre YARN, Kubernetes o en la nube</li>
+              </ul>
+              <p class="tool-card__label">Limitaciones</p>
+              <ul class="tool-card__cons">
+                <li><svg class="icon" width="16" height="16"><use href="#icon-alert"/></svg> Consumo elevado de memoria y sensibilidad al mal dimensionamiento del clúster</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-alert"/></svg> La optimización de particiones y shuffles exige experiencia especializada</li>
+              </ul>
+              <p class="tool-card__use">Especialmente útil cuando una organización necesita un único motor capaz de cubrir ETL, analítica y modelos de machine learning sobre grandes volúmenes.</p>
+            </article>
+
+            <article class="tool-card reveal">
+              <div class="tool-card__head">
+                <h3>Apache Airflow</h3>
+                <span class="badge badge--oss">Open Source</span>
+              </div>
+              <p class="tool-card__meta">Categoría: orquestación de workflows</p>
+              <p>Airflow es una plataforma para desarrollar, programar y monitorear workflows mediante código (Apache Software Foundation, s. f.-a). No mueve ni transforma datos por sí mismo: coordina cuándo y en qué orden se ejecutan tareas —que sí pueden ser trabajos ETL, jobs de Spark o consultas— y qué ocurre si alguna falla.</p>
+              <p class="tool-card__label">Ventajas</p>
+              <ul class="tool-card__pros">
+                <li><svg class="icon" width="16" height="16"><use href="#icon-check"/></svg> Flujos de trabajo definidos como código Python, versionables y reutilizables</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-check"/></svg> Reintentos automáticos, alertas y monitoreo centralizado de pipelines</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-check"/></svg> Arquitectura extensible mediante proveedores para conectarse a otras herramientas</li>
+              </ul>
+              <p class="tool-card__label">Limitaciones</p>
+              <ul class="tool-card__cons">
+                <li><svg class="icon" width="16" height="16"><use href="#icon-alert"/></svg> Añade infraestructura propia que mantener (programador, base de metadatos, workers)</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-alert"/></svg> No está pensado para orquestar streaming de baja latencia</li>
+              </ul>
+              <p class="tool-card__use">Especialmente útil cuando existen múltiples tareas dependientes entre sí que deben ejecutarse en un orden y horario definidos, con trazabilidad de fallos.</p>
+            </article>
+          </div>
+        </section>
+
+        <!-- ===== 05. SOLUCIONES COMERCIALES ===== -->
+        <section class="block" id="comercial" aria-labelledby="comercial-title">
+          <p class="block__eyebrow">05 · Modelo comercial y gestionado</p>
+          <h2 class="block__title" id="comercial-title">Soluciones comerciales y servicios gestionados</h2>
+
+          <p>Una solución comercial se caracteriza por ofrecer soporte empresarial, acuerdos de nivel de servicio (SLA), integración simplificada con la nube y funcionalidades administradas que reducen la carga operativa de quien la usa. A cambio, suele implicar un modelo de licenciamiento o consumo, y cierto grado de dependencia del proveedor.</p>
+
+          <p>"Comercial" no equivale automáticamente a "cerrado". Conviene distinguir al menos cuatro variantes que suelen agruparse bajo esa etiqueta:</p>
+
+          <div class="benefit-list">
+            <div class="benefit-list__item reveal">
+              <svg class="icon" width="22" height="22"><use href="#icon-lock"/></svg>
+              <div><h3>Software propietario</h3><p>Código cerrado, licenciado por el fabricante; el cliente no puede inspeccionarlo ni modificarlo.</p></div>
+            </div>
+            <div class="benefit-list__item reveal">
+              <svg class="icon" width="22" height="22"><use href="#icon-layers"/></svg>
+              <div><h3>Plataforma comercial</h3><p>Un producto de una empresa que puede incorporar componentes propios y de terceros, abiertos o cerrados.</p></div>
+            </div>
+            <div class="benefit-list__item reveal">
+              <svg class="icon" width="22" height="22"><use href="#icon-cloud"/></svg>
+              <div><h3>Servicio cloud gestionado</h3><p>Un proveedor opera la infraestructura y la disponibilidad; el cliente paga por uso o por capacidad reservada.</p></div>
+            </div>
+            <div class="benefit-list__item reveal">
+              <svg class="icon" width="22" height="22"><use href="#icon-repeat"/></svg>
+              <div><h3>Open Source como servicio</h3><p>Un proyecto de código abierto (p. ej., Spark) ofrecido y operado comercialmente por un proveedor, como hace Databricks.</p></div>
+            </div>
+          </div>
+
+          <p>Esta última variante es clave para el argumento central de este blog: una misma tecnología puede transitar de un extremo a otro del espectro según quién la empaqueta y quién asume la responsabilidad de operarla. Databricks, por ejemplo, es una plataforma comercial construida alrededor de proyectos originalmente Open Source como Spark y Delta Lake (Armbrust et al., 2021).</p>
+        </section>
+
+        <!-- ===== 06. HERRAMIENTAS COMERCIALES / GESTIONADAS ===== -->
+        <section class="block" id="herramientas-comerciales" aria-labelledby="herramientas-comerciales-title">
+          <p class="block__eyebrow">06 · Análisis de herramientas</p>
+          <h2 class="block__title" id="herramientas-comerciales-title">Tres herramientas comerciales o gestionadas</h2>
+
+          <p>Databricks, Snowflake y BigQuery se seleccionaron porque representan tres formas distintas de "ser comercial": una plataforma construida sobre tecnología Open Source, un warehouse propietario clásico, y un servicio serverless de pago por consumo. Esa diversidad permite discutir el modelo de licenciamiento con matices, en lugar de tratarlo como una categoría única.</p>
+
+          <div class="tool-grid">
+            <article class="tool-card reveal">
+              <div class="tool-card__head">
+                <h3>Databricks</h3>
+                <span class="badge badge--comercial">Comercial / gestionado</span>
+              </div>
+              <p class="tool-card__meta">Categoría: procesamiento, ingeniería de datos y analítica (lakehouse)</p>
+              <p>Databricks es una plataforma de datos e inteligencia artificial construida sobre la arquitectura de lakehouse, que combina elementos de los data lakes y los data warehouses (Databricks, s. f.; Armbrust et al., 2021). Encaja en la capa de procesamiento, integración y analítica, ofreciendo clústeres Spark gestionados sin que el cliente administre la infraestructura subyacente.</p>
+              <p class="tool-card__label">Ventajas</p>
+              <ul class="tool-card__pros">
+                <li><svg class="icon" width="16" height="16"><use href="#icon-check"/></svg> Elimina la administración operativa de clústeres Spark</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-check"/></svg> Unifica BI, ingeniería de datos y machine learning sobre los mismos datos</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-check"/></svg> Se apoya en formatos abiertos (Delta Lake, Parquet), lo que reduce el bloqueo de datos</li>
+              </ul>
+              <p class="tool-card__label">Limitaciones</p>
+              <ul class="tool-card__cons">
+                <li><svg class="icon" width="16" height="16"><use href="#icon-alert"/></svg> Costo variable según consumo de cómputo, que depende del modelo de precios vigente</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-alert"/></svg> Sigue requiriendo conocimiento de Spark para optimizar cargas complejas</li>
+              </ul>
+              <p class="tool-card__use">Útil para organizaciones que quieren el poder de Spark sin operar su infraestructura, y que buscan unificar analítica e IA sobre una misma plataforma.</p>
+            </article>
+
+            <article class="tool-card reveal">
+              <div class="tool-card__head">
+                <h3>Snowflake</h3>
+                <span class="badge badge--comercial">Comercial / gestionado</span>
+              </div>
+              <p class="tool-card__meta">Categoría: almacenamiento y analítica SQL (data warehouse)</p>
+              <p>Snowflake es una plataforma de datos en la nube cuya arquitectura separa el almacenamiento, el cómputo y los servicios, con clústeres de cómputo de procesamiento masivamente paralelo (MPP) sobre un repositorio central de datos (Snowflake Inc., s. f.). Encaja en la capa de almacenamiento y consulta analítica.</p>
+              <p class="tool-card__label">Ventajas</p>
+              <ul class="tool-card__pros">
+                <li><svg class="icon" width="16" height="16"><use href="#icon-check"/></svg> Escala almacenamiento y cómputo de forma independiente</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-check"/></svg> Administración mínima: no exige gestionar clústeres manualmente</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-check"/></svg> Fuerte ergonomía SQL y funciones de intercambio de datos entre organizaciones</li>
+              </ul>
+              <p class="tool-card__label">Limitaciones</p>
+              <ul class="tool-card__cons">
+                <li><svg class="icon" width="16" height="16"><use href="#icon-alert"/></svg> Plataforma propietaria: mayor dependencia del proveedor que un motor abierto</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-alert"/></svg> Menos orientada a cargas de ingeniería de datos o machine learning complejas sin herramientas adicionales</li>
+              </ul>
+              <p class="tool-card__use">Útil para organizaciones que priorizan un warehouse SQL confiable y de bajo mantenimiento por encima de flexibilidad de ingeniería de datos.</p>
+            </article>
+
+            <article class="tool-card reveal">
+              <div class="tool-card__head">
+                <h3>Google BigQuery</h3>
+                <span class="badge badge--comercial">Comercial / gestionado</span>
+              </div>
+              <p class="tool-card__meta">Categoría: almacenamiento y analítica serverless</p>
+              <p>BigQuery es el almacén de datos analítico, completamente gestionado y de escala de petabytes, de Google Cloud, que permite ejecutar analítica sobre grandes volúmenes de datos casi en tiempo real sin infraestructura que aprovisionar (Google Cloud, s. f.). Encaja en la capa de almacenamiento y análisis.</p>
+              <p class="tool-card__label">Ventajas</p>
+              <ul class="tool-card__pros">
+                <li><svg class="icon" width="16" height="16"><use href="#icon-check"/></svg> Verdaderamente serverless: no requiere dimensionar clústeres</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-check"/></svg> Consultas interactivas rápidas sobre conjuntos de datos muy grandes</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-check"/></svg> Integración nativa con machine learning (BigQuery ML) y herramientas de BI</li>
+              </ul>
+              <p class="tool-card__label">Limitaciones</p>
+              <ul class="tool-card__cons">
+                <li><svg class="icon" width="16" height="16"><use href="#icon-alert"/></svg> El costo puede volverse impredecible si las consultas no están optimizadas</li>
+                <li><svg class="icon" width="16" height="16"><use href="#icon-alert"/></svg> Atado al ecosistema de Google Cloud</li>
+              </ul>
+              <p class="tool-card__use">Útil para organizaciones ya asentadas en Google Cloud, o con cargas de consulta variables que se benefician de un modelo serverless.</p>
+            </article>
+          </div>
+
+          <p>En los tres casos, el precio real depende del modelo de consumo vigente en cada proveedor y del volumen/patrón de uso de cada organización; este artículo no reporta cifras concretas porque cambian con frecuencia y varían según la región y el acuerdo contractual.</p>
+        </section>
+
+        <!-- ===== 07. OPEN SOURCE VS COMERCIAL ===== -->
+        <section class="block block--stance" id="oss-vs-comercial" aria-labelledby="oss-vs-comercial-title">
+          <p class="block__eyebrow">07 · Comparación crítica</p>
+          <h2 class="block__title" id="oss-vs-comercial-title">Open Source vs. Comercial</h2>
+
+          <p>Ninguna de las dos categorías "gana" de forma absoluta: cada una traslada costos y riesgos a lugares distintos. La siguiente tabla resume los principales criterios de comparación.</p>
+
+          <div class="table-wrap">
+            <table class="compare-table">
+              <caption>Comparación de criterios entre herramientas Open Source y comerciales/gestionadas.</caption>
+              <thead>
+                <tr><th scope="col">Criterio</th><th scope="col">Open Source</th><th scope="col">Comercial / gestionado</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">Licenciamiento</th><td>Código abierto (p. ej., Apache 2.0); sin costo de licencia</td><td>Licencia o consumo pagado; depende del proveedor</td></tr>
+                <tr><th scope="row">Flexibilidad</th><td>Alta: se puede modificar el código fuente</td><td>Limitada al alcance que ofrece el proveedor</td></tr>
+                <tr><th scope="row">Control de infraestructura</th><td>Total, pero también total la responsabilidad</td><td>Delegado casi por completo al proveedor</td></tr>
+                <tr><th scope="row">Soporte empresarial</th><td>Depende de comunidad o de soporte de terceros contratado aparte</td><td>Incluido, con SLA formal</td></tr>
+                <tr><th scope="row">Escalabilidad</th><td>Posible, pero requiere diseño y operación propios</td><td>Habitualmente automática o casi automática</td></tr>
+                <tr><th scope="row">Tiempo de implementación</th><td>Mayor: instalación, configuración y afinamiento propios</td><td>Menor: aprovisionamiento gestionado por el proveedor</td></tr>
+                <tr><th scope="row">Personal especializado</th><td>Alta demanda de conocimiento operativo interno</td><td>Menor demanda operativa; se requiere conocimiento de uso</td></tr>
+                <tr><th scope="row">Mantenimiento</th><td>A cargo de quien opera la herramienta</td><td>A cargo del proveedor</td></tr>
+                <tr><th scope="row">Costos operativos</th><td>Infraestructura, administración y personal propios</td><td>Costo de consumo o suscripción, generalmente más previsible</td></tr>
+                <tr><th scope="row">Dependencia del proveedor</th><td>Baja: portabilidad alta entre entornos</td><td>Mayor: migrar puede ser costoso (vendor lock-in)</td></tr>
+                <tr><th scope="row">Personalización</th><td>Muy alta</td><td>Acotada a las opciones que expone el proveedor</td></tr>
+                <tr><th scope="row">Seguridad y gobernanza</th><td>Responsabilidad de quien despliega la herramienta</td><td>Habitualmente incluida como parte del servicio</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="meter-panel reveal">
+            <p class="meter-panel__note">Evaluación conceptual con fines ilustrativos, elaborada por el autor a partir de las características descritas en este blog — no corresponde a un benchmark oficial ni a datos de una fuente certificada.</p>
+
+            <div class="meter-group">
+              <p class="meter-group__title">Escalabilidad automática</p>
+              <div class="meter"><span class="meter__label">Open Source</span><div class="meter__track"><div class="meter__fill" style="width:55%"></div></div><span class="meter__qual">Media</span></div>
+              <div class="meter"><span class="meter__label">Comercial</span><div class="meter__track"><div class="meter__fill meter__fill--comercial" style="width:88%"></div></div><span class="meter__qual">Alta</span></div>
+            </div>
+
+            <div class="meter-group">
+              <p class="meter-group__title">Flexibilidad y personalización</p>
+              <div class="meter"><span class="meter__label">Open Source</span><div class="meter__track"><div class="meter__fill" style="width:90%"></div></div><span class="meter__qual">Alta</span></div>
+              <div class="meter"><span class="meter__label">Comercial</span><div class="meter__track"><div class="meter__fill meter__fill--comercial" style="width:50%"></div></div><span class="meter__qual">Media</span></div>
+            </div>
+
+            <div class="meter-group">
+              <p class="meter-group__title">Velocidad de implementación</p>
+              <div class="meter"><span class="meter__label">Open Source</span><div class="meter__track"><div class="meter__fill" style="width:40%"></div></div><span class="meter__qual">Baja</span></div>
+              <div class="meter"><span class="meter__label">Comercial</span><div class="meter__track"><div class="meter__fill meter__fill--comercial" style="width:85%"></div></div><span class="meter__qual">Alta</span></div>
+            </div>
+
+            <div class="meter-group">
+              <p class="meter-group__title">Costo operativo (infraestructura + personal)</p>
+              <div class="meter"><span class="meter__label">Open Source</span><div class="meter__track"><div class="meter__fill" style="width:78%"></div></div><span class="meter__qual">Alto</span></div>
+              <div class="meter"><span class="meter__label">Comercial</span><div class="meter__track"><div class="meter__fill meter__fill--comercial" style="width:48%"></div></div><span class="meter__qual">Media</span></div>
+            </div>
+
+            <div class="meter-group">
+              <p class="meter-group__title">Dependencia del proveedor (vendor lock-in)</p>
+              <div class="meter"><span class="meter__label">Open Source</span><div class="meter__track"><div class="meter__fill" style="width:18%"></div></div><span class="meter__qual">Baja</span></div>
+              <div class="meter"><span class="meter__label">Comercial</span><div class="meter__track"><div class="meter__fill meter__fill--comercial" style="width:72%"></div></div><span class="meter__qual">Media-alta</span></div>
+            </div>
+          </div>
+
+          <p>Los datos de la tabla y de los indicadores muestran un patrón consistente: lo que una categoría ahorra en un criterio, tiende a exigirlo en otro. Open Source ofrece control y personalización, pero traslada el costo operativo y la necesidad de personal especializado a quien lo adopta. Lo comercial reduce esa carga operativa, pero a cambio de un costo de consumo continuo y de mayor dependencia del proveedor.</p>
+
+          <p>Esto es consistente con lo que la literatura sobre arquitecturas de lakehouse describe como limitaciones de los data warehouses tradicionales —incluyendo el costo total de propiedad y el bloqueo de datos (data lock-in)— y con la respuesta que representan arquitecturas que combinan formatos abiertos con operación gestionada (Armbrust et al., 2021). En otras palabras: el debate no es "abierto contra cerrado", sino qué combinación de control, costo y responsabilidad operativa se ajusta mejor a la capacidad real de cada organización.</p>
+        </section>
+
+        <!-- ===== 08. ETL Y PIPELINES DE DATOS ===== -->
+        <section class="block" id="etl-elt" aria-labelledby="etl-elt-title">
+          <p class="block__eyebrow">08 · Integración de datos</p>
+          <h2 class="block__title" id="etl-elt-title">ETL y pipelines de datos</h2>
+
+          <p>ETL (Extract, Transform, Load) y ELT (Extract, Load, Transform) son dos secuencias distintas para mover datos desde un origen hasta un destino analítico. La diferencia no es cosmética: determina dónde ocurre la transformación y qué tan pronto los datos crudos quedan disponibles para su uso.</p>
+
+          <div class="etl-compare">
+            <div>
+              <h3>ETL</h3>
+              <div class="flow flow--3col">
+                <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-search"/></svg><span>Extract</span></div>
+                <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-cpu"/></svg><span>Transform</span></div>
+                <div class="flow__step flow__step--final"><svg class="icon" width="22" height="22"><use href="#icon-database"/></svg><span>Load</span></div>
+              </div>
+            </div>
+            <div>
+              <h3>ELT</h3>
+              <div class="flow flow--3col">
+                <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-search"/></svg><span>Extract</span></div>
+                <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-database"/></svg><span>Load</span></div>
+                <div class="flow__step flow__step--final"><svg class="icon" width="22" height="22"><use href="#icon-cpu"/></svg><span>Transform</span></div>
+              </div>
+            </div>
+          </div>
+
+          <p>En ETL, los datos se transforman antes de cargarlos, lo que resulta útil cuando el destino tiene capacidad de cómputo limitada o cuando se requiere aplicar reglas de calidad antes de que los datos sean visibles. En ELT, los datos crudos se cargan primero y se transforman dentro del propio destino analítico, un enfoque que se ha vuelto más común a medida que los data warehouses y lakehouses en la nube ofrecen suficiente cómputo para transformar los datos donde ya residen.</p>
+
+          <div class="benefit-list">
+            <div class="benefit-list__item reveal">
+              <svg class="icon" width="22" height="22"><use href="#icon-route"/></svg>
+              <div><h3>Apache NiFi</h3><p>Diseño visual de flujos de integración y transformaciones ligeras entre sistemas (Apache Software Foundation, s. f.-d).</p></div>
+            </div>
+            <div class="benefit-list__item reveal">
+              <svg class="icon" width="22" height="22"><use href="#icon-repeat"/></svg>
+              <div><h3>Apache Airflow</h3><p>Orquesta cuándo se ejecutan los pasos de un pipeline ETL/ELT; no transforma datos por sí mismo (Apache Software Foundation, s. f.-a).</p></div>
+            </div>
+            <div class="benefit-list__item reveal">
+              <svg class="icon" width="22" height="22"><use href="#icon-cloud"/></svg>
+              <div><h3>AWS Glue</h3><p>Servicio serverless de integración de datos que descubre, prepara y ejecuta trabajos ETL sobre un motor basado en Spark (Amazon Web Services, s. f.).</p></div>
+            </div>
+            <div class="benefit-list__item reveal">
+              <svg class="icon" width="22" height="22"><use href="#icon-cpu"/></svg>
+              <div><h3>Apache Spark</h3><p>Motor de transformación a gran escala, utilizable tanto en enfoques ETL como ELT (Apache Software Foundation, s. f.-e).</p></div>
+            </div>
+          </div>
+
+          <p>Conviene subrayar una confusión frecuente: Airflow no es una herramienta ETL. Es un orquestador de workflows que puede coordinar tareas ETL/ELT ejecutadas por otras herramientas (como Spark o Glue), pero no extrae, transforma ni carga datos por sí mismo (Apache Software Foundation, s. f.-a).</p>
+        </section>
+
+        <!-- ===== 09. CASO DE ARQUITECTURA ===== -->
+        <section class="block" id="caso-arquitectura" aria-labelledby="caso-arquitectura-title">
+          <p class="block__eyebrow">09 · Aplicación conceptual</p>
+          <h2 class="block__title" id="caso-arquitectura-title">Caso de arquitectura</h2>
+
+          <article class="case reveal">
+            <div class="case__head">
+              <svg class="icon case__icon" width="26" height="26"><use href="#icon-layers"/></svg>
+              <div>
+                <p class="case__tag">Escenario conceptual</p>
+                <h3>Una organización con múltiples fuentes de datos</h3>
+              </div>
+            </div>
+            <p>Imaginemos una organización que recibe datos desde redes sociales, sensores IoT, su sistema ERP y su CRM. Ninguna herramienta aislada resuelve ese escenario: se necesita una combinación de piezas especializadas conectadas entre sí. El siguiente diagrama es una arquitectura de referencia conceptual —no una receta obligatoria— que ilustra una posible integración.</p>
+          </article>
+
+          <figure class="diagram diagram--flow reveal">
+            <p id="fig-arquitectura-title" class="sr-only">Arquitectura conceptual: fuentes de datos, Kafka, NiFi o ETL, data lake o almacenamiento, Spark, data warehouse o lakehouse, analítica o BI o machine learning, y decisiones.</p>
+            <div class="flow" role="img" aria-labelledby="fig-arquitectura-title">
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-globe"/></svg><span>Redes sociales / IoT / ERP / CRM</span></div>
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-zap"/></svg><span>Kafka</span></div>
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-route"/></svg><span>NiFi / ETL</span></div>
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-database"/></svg><span>Data lake / Storage</span></div>
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-cpu"/></svg><span>Spark</span></div>
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-layers"/></svg><span>Data warehouse / Lakehouse</span></div>
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-bars"/></svg><span>Analítica / BI / ML</span></div>
+              <div class="flow__step flow__step--final"><svg class="icon" width="22" height="22"><use href="#icon-target"/></svg><span>Decisiones</span></div>
+            </div>
+            <figcaption>Figura 2. Arquitectura Big Data conceptual: no es obligatorio usar exactamente estas herramientas, sino ilustrar cómo pueden integrarse piezas de distintas capas.</figcaption>
+          </figure>
+
+          <p>Nótese que esta cadena podría reemplazarse en varios tramos por servicios comerciales equivalentes: Kafka podría sustituirse por un servicio gestionado de streaming, y la combinación Data lake + Spark + Data warehouse podría resolverse íntegramente dentro de Databricks, Snowflake o BigQuery. La arquitectura conceptual no depende de una única elección tecnológica; depende de que cada etapa quede cubierta por alguna herramienta, Open Source o comercial.</p>
+        </section>
+
+        <!-- ===== 10. CÓMO ELEGIR ===== -->
+        <section class="block" id="como-elegir" aria-labelledby="como-elegir-title">
+          <p class="block__eyebrow">10 · Marco de decisión</p>
+          <h2 class="block__title" id="como-elegir-title">¿Cómo elegir?</h2>
+
+          <p>La elección entre una herramienta Open Source y una comercial no debería resolverse por preferencia ideológica ni por popularidad, sino siguiendo un marco de decisión que parta de los requerimientos reales de la arquitectura.</p>
+
+          <figure class="diagram diagram--flow reveal">
+            <p id="fig-decision-title" class="sr-only">Marco de decisión: requerimientos, volumen de datos, latencia, tipo de carga, escalabilidad, integración, seguridad, capacidades del equipo, costo total y elección.</p>
+            <div class="flow" role="img" aria-labelledby="fig-decision-title">
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-search"/></svg><span>Requerimientos</span></div>
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-database"/></svg><span>Volumen de datos</span></div>
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-clock"/></svg><span>Latencia</span></div>
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-layers"/></svg><span>Tipo de carga</span></div>
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-trend"/></svg><span>Escalabilidad</span></div>
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-route"/></svg><span>Integración</span></div>
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-shield"/></svg><span>Seguridad</span></div>
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-users"/></svg><span>Capacidades del equipo</span></div>
+              <div class="flow__step"><svg class="icon" width="22" height="22"><use href="#icon-scale"/></svg><span>Costo total</span></div>
+              <div class="flow__step flow__step--final"><svg class="icon" width="22" height="22"><use href="#icon-target"/></svg><span>Elección</span></div>
+            </div>
+            <figcaption>Figura 3. Marco de decisión conceptual para elegir entre herramientas Big Data Open Source y comerciales.</figcaption>
+          </figure>
+
+          <div class="checklist reveal">
+            <p class="checklist__title">Antes de elegir una herramienta Big Data, preguntar:</p>
+            <ul>
+              <li><svg class="icon" width="18" height="18"><use href="#icon-check"/></svg> ¿Qué volumen de datos procesaremos?</li>
+              <li><svg class="icon" width="18" height="18"><use href="#icon-check"/></svg> ¿Batch, streaming o ambos?</li>
+              <li><svg class="icon" width="18" height="18"><use href="#icon-check"/></svg> ¿Qué latencia necesitamos?</li>
+              <li><svg class="icon" width="18" height="18"><use href="#icon-check"/></svg> ¿Qué infraestructura tenemos ya disponible?</li>
+              <li><svg class="icon" width="18" height="18"><use href="#icon-check"/></svg> ¿Qué habilidades tiene el equipo?</li>
+              <li><svg class="icon" width="18" height="18"><use href="#icon-check"/></svg> ¿Qué nivel de control necesitamos sobre la infraestructura?</li>
+              <li><svg class="icon" width="18" height="18"><use href="#icon-check"/></svg> ¿Qué requisitos regulatorios existen?</li>
+              <li><svg class="icon" width="18" height="18"><use href="#icon-check"/></svg> ¿Cuál es el costo total esperado, no solo el de licencia?</li>
+              <li><svg class="icon" width="18" height="18"><use href="#icon-check"/></svg> ¿Qué tan importante es evitar el vendor lock-in?</li>
+              <li><svg class="icon" width="18" height="18"><use href="#icon-check"/></svg> ¿Qué tan crítica es la disponibilidad del sistema?</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ===== 11. REFLEXIÓN CRÍTICA ===== -->
+        <section class="block block--critical" id="reflexion-critica" aria-labelledby="reflexion-critica-title">
+          <p class="block__eyebrow">11 · Postura argumentativa</p>
+          <h2 class="block__title" id="reflexion-critica-title">Reflexión crítica</h2>
+
+          <p>En Big Data, la decisión tecnológica no debería reducirse a elegir entre "gratis" y "de pago". El verdadero análisis debe considerar el costo total, las capacidades del equipo, la arquitectura existente, el nivel de control requerido y el valor que la herramienta aporta al negocio.</p>
+
+          <div class="tension-list">
+            <article class="tension reveal">
+              <h3><svg class="icon" width="20" height="20"><use href="#icon-scale"/></svg> ¿Es realmente mejor una herramienta gratuita?</h3>
+              <p>No necesariamente. Una herramienta Open Source "gratuita" en licencia puede resultar más costosa en el mediano plazo si una organización carece del personal especializado para operarla con confiabilidad. La pregunta relevante no es el precio de entrada, sino el costo total de propiedad frente al valor generado.</p>
+            </article>
+
+            <article class="tension reveal">
+              <h3><svg class="icon" width="20" height="20"><use href="#icon-cloud"/></svg> ¿Cuándo pagar por una plataforma puede ser más eficiente?</h3>
+              <p>Cuando el costo de contratar, formar y retener personal especializado en operar infraestructura Big Data supera lo que costaría delegar esa operación a un proveedor. Para equipos pequeños o con picos de demanda impredecibles, un servicio gestionado puede resultar más eficiente que replicar esa capacidad internamente.</p>
+            </article>
+
+            <article class="tension reveal">
+              <h3><svg class="icon" width="20" height="20"><use href="#icon-users"/></svg> ¿Puede una organización sofisticada preferir Open Source?</h3>
+              <p>Sí. Organizaciones con equipos de ingeniería de datos maduros pueden preferir Open Source precisamente porque valoran el control total sobre la infraestructura, la posibilidad de auditar el código y la ausencia de dependencia de un proveedor único, incluso asumiendo el costo operativo adicional.</p>
+            </article>
+
+            <article class="tension reveal">
+              <h3><svg class="icon" width="20" height="20"><use href="#icon-alert"/></svg> ¿Cuándo el costo de administrar Open Source supera el ahorro de licencia?</h3>
+              <p>Cuando la operación de la herramienta exige contratar y mantener personal altamente especializado de forma permanente, y ese costo salarial y de oportunidad termina superando lo que se habría pagado por un servicio gestionado equivalente. El "ahorro" de licencia es, en esos casos, solo aparente.</p>
+            </article>
+
+            <article class="tension reveal">
+              <h3><svg class="icon" width="20" height="20"><use href="#icon-lock"/></svg> ¿Qué riesgos trae la dependencia de un proveedor cloud?</h3>
+              <p>El principal riesgo es el vendor lock-in: migrar datos, procesos y conocimiento operativo fuera de una plataforma propietaria puede ser costoso y lento, lo que reduce el poder de negociación de la organización frente al proveedor a lo largo del tiempo (Armbrust et al., 2021).</p>
+            </article>
+
+            <article class="tension reveal">
+              <h3><svg class="icon" width="20" height="20"><use href="#icon-target"/></svg> ¿Popularidad o requisitos de la arquitectura?</h3>
+              <p>Elegir una herramienta porque "es la más usada" ignora que la arquitectura, el volumen de datos, la latencia requerida y las capacidades del equipo son distintas en cada organización. La popularidad puede ser un indicio de madurez del ecosistema, pero no reemplaza un análisis de requerimientos propio.</p>
+            </article>
+          </div>
+
+          <p>Sostenemos una postura intermedia: ni el optimismo acrítico hacia el Open Source por ser "libre", ni la preferencia automática por lo comercial en nombre de la comodidad. La decisión razonable exige comparar requerimientos técnicos, capacidades reales del equipo y costo total de operación, no solo el precio de la licencia.</p>
+        </section>
+
+        <!-- ===== 12. CONCLUSIONES ===== -->
+        <section class="block" id="conclusiones" aria-labelledby="conclusiones-title">
+          <p class="block__eyebrow">12 · Cierre</p>
+          <h2 class="block__title" id="conclusiones-title">Conclusiones</h2>
+
+          <p>Las herramientas Big Data no son un catálogo de productos intercambiables, sino piezas especializadas —almacenamiento, procesamiento, integración, streaming, orquestación, consulta, analítica y visualización— que forman un ecosistema cuando se combinan a lo largo de un pipeline de datos.</p>
+
+          <p>La distinción entre Open Source y comercial no equivale a la distinción entre gratuito y pago. Una herramienta Open Source traslada la responsabilidad operativa —infraestructura, mantenimiento, seguridad, personal especializado— a quien la adopta; una solución comercial la delega en el proveedor a cambio de un costo de consumo y cierta dependencia. Ambas rutas son legítimas según el contexto.</p>
+
+          <p>El ETL y el ELT, junto con la orquestación de workflows, son piezas centrales de cualquier arquitectura, y confundirlas —como ocurre a menudo con Airflow— lleva a expectativas equivocadas sobre lo que cada herramienta puede hacer. La arquitectura de referencia que combina fuentes, ingesta, integración, almacenamiento, procesamiento y análisis demuestra que ninguna herramienta actúa de forma aislada.</p>
+
+          <p>Finalmente, el principal trade-off de esta discusión es el mismo en cada criterio comparado: control frente a comodidad, personalización frente a soporte, costo operativo frente a costo de consumo. Elegir bien no significa encontrar la herramienta "correcta" en abstracto, sino la que mejor equilibra esos factores frente a los requerimientos, la escala y las capacidades reales de cada organización.</p>
+        </section>
+
+        <!-- ===== 13. REFERENCIAS ===== -->
+        <section class="block" id="referencias" aria-labelledby="referencias-title">
+          <p class="block__eyebrow">13 · Bibliografía</p>
+          <h2 class="block__title" id="referencias-title">Referencias</h2>
+          <p>Fuentes citadas a lo largo del artículo, en formato APA 7.ª edición. Se priorizó documentación oficial de cada proyecto/proveedor y literatura académica sobre arquitecturas de datos.</p>
+
+          <ol class="references">
+            <li>Amazon Web Services. (s. f.). <em>What is AWS Glue?</em> AWS Glue Documentation. Recuperado el 13 de septiembre de 2026, de https://docs.aws.amazon.com/glue/latest/dg/what-is-glue.html</li>
+            <li>Apache Software Foundation. (s. f.-a). <em>Apache Airflow documentation: Core concepts</em>. Recuperado el 13 de septiembre de 2026, de https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/index.html</li>
+            <li>Apache Software Foundation. (s. f.-b). <em>Apache Hadoop: HDFS architecture guide</em>. Recuperado el 13 de septiembre de 2026, de https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsDesign.html</li>
+            <li>Apache Software Foundation. (s. f.-c). <em>Apache Kafka documentation</em>. Recuperado el 13 de septiembre de 2026, de https://kafka.apache.org/documentation/</li>
+            <li>Apache Software Foundation. (s. f.-d). <em>Apache NiFi documentation</em>. Recuperado el 13 de septiembre de 2026, de https://nifi.apache.org/documentation/</li>
+            <li>Apache Software Foundation. (s. f.-e). <em>Apache Spark documentation</em>. Recuperado el 13 de septiembre de 2026, de https://spark.apache.org/documentation.html</li>
+            <li>Armbrust, M., Ghodsi, A., Xin, R., &amp; Zaharia, M. (2021). Lakehouse: A new generation of open platforms that unify data warehousing and advanced analytics. <em>Proceedings of the 11th Conference on Innovative Data Systems Research (CIDR 2021)</em>. http://cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf</li>
+            <li>Chang, W., &amp; Grady, N. (2018). <em>NIST big data interoperability framework: Volume 1, big data definitions</em> (Versión 2) (NIST Special Publication 1500-1r1). National Institute of Standards and Technology. https://doi.org/10.6028/NIST.SP.1500-1r1</li>
+            <li>Databricks. (s. f.). <em>The scope of the Databricks platform</em>. Databricks Documentation. Recuperado el 13 de septiembre de 2026, de https://docs.databricks.com/aws/en/lakehouse-architecture/scope</li>
+            <li>Google Cloud. (s. f.). <em>BigQuery overview</em>. Recuperado el 13 de septiembre de 2026, de https://cloud.google.com/bigquery/docs/introduction</li>
+            <li>Snowflake Inc. (s. f.). <em>Snowflake key concepts and architecture</em>. Recuperado el 13 de septiembre de 2026, de https://docs.snowflake.com/en/user-guide/intro-key-concepts</li>
+          </ol>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <img class="site-footer__logo" src="assets/logosInstitucionales/HORIZONTAL BLANCO.png" alt="Universidad de Cundinamarca" height="36">
+      <p class="site-footer__title">El ecosistema detrás de los datos: herramientas Big Data Open Source vs. comerciales</p>
+      <p class="site-footer__meta">Blog académico · 2026 · Autor: Nikolas Esteban Krejci Bautista · Programa: Especialización en Analítica y Ciencia de Datos · CADI: Big Data - CAD2092023101 · Actividad: R1-A3-S4 · Institución: Universidad de Cundinamarca</p>
+      <a href="#top" class="site-footer__top" data-nav>Volver al inicio</a>
+    </div>
+  </footer>
+
+  <button class="back-to-top" id="back-to-top" aria-label="Volver arriba" type="button">
+    <svg class="icon" width="20" height="20"><use href="#icon-arrow-up"/></svg>
+  </button>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
